@@ -1,4 +1,6 @@
 ﻿using Product.Data.Data;
+using Product.Repository.Specification;
+using Product.Services.DTO;
 using System;
 using System.Collections.Generic;
 using System.Linq;
@@ -9,9 +11,11 @@ namespace Product.Services
 {
     public interface IproductServices
     {
-        IEnumerable<Products> GetallProducts();
+        Task<PaginatedResultDTO<ProductModel>> GetallProductsAsync(ProductSpecification input);
         IEnumerable<ProductBrand> GetallBrands();
         IEnumerable<ProductType> GetallTypes();
+        Task<List<ProductModel>> GetProductByID(int ID);
+
 
     }
 }

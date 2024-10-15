@@ -41,6 +41,17 @@ namespace Product.Repository
                         await context.Products.AddRangeAsync(products);
                     }
                 }
+                if (context.Deliveries != null && !context.Deliveries.Any())
+                {
+                    var DeilveryData = File.ReadAllText("../Product.Repository/Seed/delivery.json");
+                    var Deilvery = JsonSerializer.Deserialize<List<Delivery>>(DeilveryData);
+                    if (Deilvery is not null)
+                    {
+                        await context.Deliveries.AddRangeAsync(Deilvery);
+                    }
+                }
+
+
                 await context.SaveChangesAsync();
             }
             catch { }

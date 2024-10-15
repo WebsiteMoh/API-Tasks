@@ -1,8 +1,15 @@
 using Microsoft.EntityFrameworkCore;
 using Product.Data.Context;
+using Product.Repository.BasketRep;
 using Product.Repository.Interfaces;
 using Product.Services;
+using Product.Services.Basket;
+using Product.Services.CacheService;
+using Product.Services.DTO;
+using Product.Services.OrderServices;
+using StackExchange.Redis;
 using WebAPI.Helper;
+using WebAPI.Middleware;
 
 namespace WebAPI
 {
@@ -20,9 +27,22 @@ namespace WebAPI
                );
             builder.Services.AddScoped<IProduct, ProductRep>();
             builder.Services.AddScoped<IproductServices, ProductServices>();
-            // Learn more about configuring Swagger/OpenAPI at https://aka.ms/aspnetcore/swashbuckle
+            builder.Services.AddScoped<IOrderService, Order>();
+            builder.Services.AddScoped<IbasketRep, basketRep>();
+            builder.Services.AddScoped<IBasketService, BasketService>();
+            builder.Services.AddScoped<ICacheService, CacheService>();
+
+            builder.Services.AddIdentityServices(builder.Configuration);
+
+            builder.Services.AddAutoMapper(typeof(ProductProfile).Assembly);
+            builder.Services.AddSingleton<IConnectionMultiplexer>(config =>
+            {
+                var conf = ConfigurationOptions.Parse(builder.Configuration.GetConnectionString("Redis"));
+                return ConnectionMultiplexer.Connect(conf);
+            });
             builder.Services.AddEndpointsApiExplorer();
-            builder.Services.AddSwaggerGen();
+            builder.Services.AddSwagerDocumantion();
+
 
 
             var app = builder.Build();
@@ -34,12 +54,12 @@ namespace WebAPI
                 app.UseSwagger();
                 app.UseSwaggerUI();
             }
+           // app.UseMiddleware<ExceptionMiddleware>();
+            app.UseStaticFiles();
 
             app.UseHttpsRedirection();
 
             app.UseAuthorization();
-
-
             app.MapControllers();
 
             app.Run();
