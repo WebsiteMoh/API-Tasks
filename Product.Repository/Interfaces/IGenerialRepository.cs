@@ -13,6 +13,8 @@ namespace Product.Repository.Interfaces
         IEnumerable<ProductBrand> GetallBrands();
         IEnumerable<ProductType> GetallTypes();
 
+        Task<List<Delivery>> GetDeliverytByID(int ID);
+        Task<List<Delivery>> GetDelivery();
 
     }
 }
