@@ -1,0 +1,81 @@
+using Microsoft.EntityFrameworkCore;
+using Product.Data.Context;
+using Product.Repository.Interfaces;
+using Product.Services;
+using Product.Services.Basket;
+using Product.Services.CacheService;
+using Product.Services.DTO;
+using Product.Services.OrderServices;
+using Product.Services.Payment;
+using StackExchange.Redis;
+using WebAPI.Helper;
+
+namespace WebAPI
+{
+    public class Program
+    {
+        public static async Task Main(string[] args)
+        {
+            var builder = WebApplication.CreateBuilder(args);
+
+            // Add services to the container.
+
+            builder.Services.AddControllers();
+            builder.Services.AddDbContext<ProductDBcontext>(
+               option => option.UseSqlServer(builder.Configuration.GetConnectionString("DefaultConnection"))
+               );
+            builder.Services.AddScoped<IProduct, ProductRep>();
+            builder.Services.AddScoped<IproductServices, ProductServices>();
+            builder.Services.AddEndpointsApiExplorer();
+            builder.Services.AddSwaggerGen();
+=======
+            builder.Services.AddScoped<IOrderService, OrderServices>();
+            builder.Services.AddScoped<IbasketRep, basketRep>();
+            builder.Services.AddScoped<IBasketService, BasketService>();
+            builder.Services.AddScoped<ICacheService, CacheService>();
+            builder.Services.AddScoped<IpaymentServices, PaymentService>();
+
+
+            builder.Services.AddIdentityServices(builder.Configuration);
+
+            builder.Services.AddAutoMapper(typeof(ProductProfile).Assembly);
+            builder.Services.AddSingleton<IConnectionMultiplexer>(config =>
+            {
+                var conf = ConfigurationOptions.Parse(builder.Configuration.GetConnectionString("Redis"));
+                return ConnectionMultiplexer.Connect(conf);
+            });
+            builder.Services.AddEndpointsApiExplorer();
+            builder.Services.AddSwagerDocumantion();
+            builder.Services.AddCors(policy =>
+            {
+
+                policy.AddPolicy("CorsRules", option =>
+                {
+                    option.AllowAnyHeader().AllowAnyMethod();
+                });
+            });
+
+
+            var app = builder.Build();
+            await ApplySeeding.ApplySeedingAsync(app);
+
+            // Configure the HTTP request pipeline.
+            if (app.Environment.IsDevelopment())
+            {
+                app.UseSwagger();
+                app.UseSwaggerUI();
+            }
+
+            app.UseStaticFiles();
+            app.UseCors("CorsRules");
+            app.UseHttpsRedirection();
+
+            app.UseAuthorization();
+
+
+            app.MapControllers();
+
+            app.Run();
+        }
+    }
+}
